@@ -6,9 +6,9 @@ import (
 	"github.com/bitly/go-nsq"
 	"github.com/bitly/nsq/util"
 	"log"
-	"math/rand"
 	"net"
-	"time"
+	"os"
+	"os/signal"
 )
 
 var (
@@ -27,13 +27,15 @@ type Handler struct {
 
 func (h Handler) HandleMessage(message *nsq.Message) error {
 
-	//	host := "172.17.42.1:7000"
 	conn, err := net.Dial("tcp", *outputTCPAddrs)
 	if err != nil {
-		panic(err)
+		fmt.Printf("ERROR: could not connect to '%s' to send message '%s' \n\n",
+			*outputTCPAddrs, message.Body)
+		return nil
 	}
 	defer conn.Close()
 
+	fmt.Printf("Sending: %s to address %+v \n\n", message.Body, *outputTCPAddrs)
 	conn.Write(message.Body)
 
 	return nil
@@ -44,7 +46,6 @@ func main() {
 	flag.Parse()
 
 	if *channel == "" {
-		rand.Seed(time.Now().UnixNano())
 		*channel = fmt.Sprintf("1")
 	}
 
@@ -59,6 +60,8 @@ func main() {
 	if *outputTCPAddrs == "" {
 		log.Fatalf("-output-tcp-address required")
 	}
+
+	fmt.Printf("using %s %s %s %+v \n", *channel, *topic, *outputTCPAddrs, lookupdHTTPAddrs)
 
 	cfg := nsq.NewConfig()
 
@@ -81,5 +84,8 @@ func main() {
 		panic(err)
 	}
 
-	time.Sleep(time.Minute * 10)
+	// Handle SIGINT and SIGTERM.
+	finish := make(chan os.Signal)
+	signal.Notify(finish, os.Interrupt, os.Kill)
+	<-finish
 }
