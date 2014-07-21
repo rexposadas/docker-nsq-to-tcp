@@ -12,9 +12,9 @@ import (
 )
 
 var (
-	topic            = flag.String("topic", "", "nsq topic")
+	topic            = flag.String("topic", "test", "nsq topic")
 	channel          = flag.String("channel", "", "nsq channel")
-	outputTCPAddrs   = flag.String("output-tcp-address", "", "TCP address to send the message to")
+	outputTCPAddrs   = flag.String("output-tcp-address", "127.0.0.1:7000", "TCP address to send the message to")
 	lookupdHTTPAddrs = util.StringArray{}
 )
 
@@ -50,7 +50,7 @@ func main() {
 	}
 
 	if *topic == "" {
-		log.Fatalf("--topic is required")
+		log.Fatalf("-topic required")
 	}
 
 	if len(lookupdHTTPAddrs) == 0 {
@@ -71,7 +71,7 @@ func main() {
 	}
 	h := &Handler{}
 
-	r.SetHandler(h)
+	r.AddHandler(h)
 
 	for _, a := range lookupdHTTPAddrs {
 		err = r.ConnectToNSQLookupd(a)
