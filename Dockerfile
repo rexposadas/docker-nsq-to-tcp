@@ -5,4 +5,4 @@ ADD . /gopath/src/app/
 RUN go get app
 RUN go install
 
-CMD /gopath/bin/app -topic=$TOPIC -lookupd-http-address=$LOOKUPD_ADDR -output-tcp-address=$OUTPUT_TCP_ADDR
+CMD /gopath/bin/app -topic=$TOPIC -lookup-address=$LOOKUPD_ADDR -output-tcp-address=$OUTPUT_TCP_ADDR

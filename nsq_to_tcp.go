@@ -4,7 +4,6 @@ import (
 	"flag"
 	"fmt"
 	"github.com/bitly/go-nsq"
-	"github.com/bitly/nsq/util"
 	"log"
 	"net"
 	"os"
@@ -12,15 +11,11 @@ import (
 )
 
 var (
-	topic            = flag.String("topic", "test", "nsq topic")
-	channel          = flag.String("channel", "", "nsq channel")
-	outputTCPAddrs   = flag.String("output-tcp-address", "127.0.0.1:7000", "TCP address to send the message to")
-	lookupdHTTPAddrs = util.StringArray{}
+	topic          = flag.String("topic", "test", "nsq topic")
+	channel        = flag.String("channel", "", "nsq channel")
+	outputTCPAddrs = flag.String("output-tcp-address", "", "TCP address to send the message to")
+	lookupAddrs    = flag.String("lookup-address", "", "nsqlokupd")
 )
-
-func init() {
-	flag.Var(&lookupdHTTPAddrs, "lookupd-http-address", "lookupd HTTP address (may be given multiple times)")
-}
 
 type Handler struct {
 }
@@ -53,15 +48,15 @@ func main() {
 		log.Fatalf("-topic required")
 	}
 
-	if len(lookupdHTTPAddrs) == 0 {
-		log.Fatalf("-lookupd-http-address required")
+	if *lookupAddrs == "" {
+		log.Fatalf("-lookup-address required")
 	}
 
 	if *outputTCPAddrs == "" {
 		log.Fatalf("-output-tcp-address required")
 	}
 
-	fmt.Printf("using %s %s %s %+v \n", *channel, *topic, *outputTCPAddrs, lookupdHTTPAddrs)
+	fmt.Printf("using %s %s %s %+v \n", *channel, *topic, *outputTCPAddrs, lookupAddrs)
 
 	cfg := nsq.NewConfig()
 
@@ -73,11 +68,9 @@ func main() {
 
 	r.AddHandler(h)
 
-	for _, a := range lookupdHTTPAddrs {
-		err = r.ConnectToNSQLookupd(a)
-		if err != nil {
-			log.Fatalf(err.Error())
-		}
+	err = r.ConnectToNSQLookupd(*lookupAddrs)
+	if err != nil {
+		log.Fatalf(err.Error())
 	}
 
 	if err != nil {
