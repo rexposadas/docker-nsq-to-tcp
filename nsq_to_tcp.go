@@ -3,11 +3,12 @@ package main
 import (
 	"flag"
 	"fmt"
-	"github.com/bitly/go-nsq"
 	"log"
 	"net"
 	"os"
 	"os/signal"
+
+	"github.com/bitly/go-nsq"
 )
 
 var (
